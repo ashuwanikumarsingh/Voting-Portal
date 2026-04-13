@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="container page-content">
+            <header class="page-header">
+                <div>
+                    <h1>Cast Your Vote</h1>
+                    <p>Welcome, {{ session.user_name }}! Choose your party and vote securely.</p>
+                </div>
+            </header>
+
+            <main>
+            <div class="user-info">
+                <h3>Your Information</h3>
+                <p><strong>Age:</strong> {{ session.user_age }}</p>
+                {% if session.user_age >= 18 %}
+                    <p class="eligible">✓ You are eligible to vote</p>
+                {% else %}
+                    <p class="not-eligible">✗ You are not eligible to vote (under 18)</p>
+                {% endif %}
+            </div>
+
+            {% if session.user_age >= 18 %}
+            <form method="POST" class="form-card">
+                <div class="form-group">
+                    <label>Select Your Party</label>
+                    <div class="party-grid">
+                        {% for party in parties %}
+                        <label class="party-card vote-card" style="border-color: {{ party.color }}; background: rgba(255,255,255,0.95);">
+                            <input type="radio" name="vote" value="{{ party.name }}" required>
+                            <div class="party-flag">{{ party.flag }}</div>
+                            <div class="party-info">
+                                <div class="party-name">{{ party.name }}</div>
+                                <div class="party-code">{{ party.code }}</div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Cast Vote</button>
+            </form>
+            {% endif %}
+
+            <div class="links">
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </main>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

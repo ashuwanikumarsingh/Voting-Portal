@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database View - {{ db_name|capitalize }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="container page-content">
+            <header class="page-header">
+                <div>
+                    <h1>{{ db_name|replace('_', ' ')|title() }} Data</h1>
+                    <p>Admin view of the {{ db_name|replace('_', ' ') }} table. Scroll to inspect records directly.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Admin</a>
+                </div>
+            </header>
+
+            <main>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                {% for col in columns %}
+                                <th>{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                            <tr>
+                                {% for col in columns %}
+                                <td>{{ row[loop.index0] }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                            {% if rows|length == 0 %}
+                            <tr>
+                                <td colspan="{{ columns|length }}" class="empty-row">No records found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

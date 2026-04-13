@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="container page-content">
+            <header class="page-header">
+                <div>
+                    <h1>{% if user_type == 'election_commission' %}Election Commission Dashboard{% else %}Admin Dashboard{% endif %}</h1>
+                    <p>Manage parties, election status, and export voting data securely.</p>
+                </div>
+            </header>
+
+            <main>
+            <div class="admin-panel">
+                <div class="election-status">
+                    <h2>Election Status</h2>
+                    <p><strong>Election Number:</strong> {{ election.election_number }}</p>
+                    <p><strong>Status:</strong>
+                        <span class="status {{ election.status }}">
+                            {% if election.status == 'open' %}🟢 Open{% endif %}
+                            {% if election.status == 'closed' %}🔴 Closed{% endif %}
+                            {% if election.status == 'counting_done' %}✅ Counting Complete{% endif %}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="realtime-votes-panel">
+                    <h3>📊 Real-Time Vote Counts</h3>
+                    <div class="realtime-votes-grid" id="realtime-votes">
+                        <!-- Votes will be loaded here via JavaScript -->
+                        <div class="loading-votes">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading vote counts...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voter-generator-panel">
+                    <h3>🤖 Automatic Voter Generator</h3>
+                    <div class="generator-status">
+                        <p><strong>Status:</strong> 
+                            <span id="generator-status" class="status-badge {% if generator_status.running %}running{% else %}stopped{% endif %}">
+                                {% if generator_status.running %}
+                                    🟢 Running
+                                {% else %}
+                                    🔴 Stopped
+                                {% endif %}
+                            </span>
+                        </p>
+                        <p><strong>Voters Generated:</strong> <span id="voter-count">{{ generator_status.voter_count }}</span></p>
+                    </div>
+                    <div class="generator-controls">
+                        {% if not generator_status.running and election.status == 'open' %}
+                            <form method="POST" action="{{ url_for('start_voter_generator') }}" style="display: inline;">
+                                <button type="submit" class="btn btn-success">Start Auto-Generator</button>
+                            </form>
+                        {% elif generator_status.running %}
+                            <form method="POST" action="{{ url_for('stop_voter_generator') }}" style="display: inline;">
+                                <button type="submit" class="btn btn-danger">Stop Auto-Generator</button>
+                            </form>
+                        {% else %}
+                            <p style="color: #666; font-size: 0.9rem;">ℹ️ Generator only works when voting is open</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="admin-actions">
+                    <h3>Actions</h3>
+                    <form method="POST" action="{{ url_for('toggle_voting') }}" style="display: inline;">
+                        {% if election.status == 'open' %}
+                            <button type="submit" class="btn btn-danger">Close Voting</button>
+                        {% elif election.status == 'closed' %}
+                            <button type="submit" class="btn btn-success">Start Vote Counting</button>
+                        {% elif election.status == 'counting_done' %}
+                            <button type="submit" class="btn btn-primary">Start New Election</button>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="party-management">
+                    <h3>Manage Parties</h3>
+                    <form method="POST" action="{{ url_for('manage_parties') }}" class="party-form">
+                        <div class="form-row">
+                            <input type="text" name="name" placeholder="Party Name (e.g. BJP)" required>
+                            <input type="text" name="code" placeholder="Party Code (e.g. BJP)" required>
+                        </div>
+                        <div class="form-row">
+                            <input type="text" name="flag" placeholder="Party Flag Emoji (e.g. 🟠)">
+                            <input type="color" name="color" value="#1d4ed8">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Party</button>
+                    </form>
+
+                    <div class="party-list">
+                        <h4>Current Parties</h4>
+                        <div class="party-grid">
+                            {% for party in parties %}
+                            <div class="party-card" style="border-color: {{ party.color }}">
+                                <div class="party-flag">{{ party.flag }}</div>
+                                <div>
+                                    <div class="party-name">{{ party.name }}</div>
+                                    <div class="party-code">{{ party.code }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-analysis">
+                    <h3>Data Analysis</h3>
+                    <div class="download-links">
+                        <a href="{{ url_for('download_database', db_name='users') }}" class="btn btn-secondary">Download Users Data (Excel)</a>
+                        <a href="{{ url_for('download_database', db_name='votes') }}" class="btn btn-secondary">Download Votes Data (Excel)</a>
+                        <a href="{{ url_for('download_database', db_name='parties') }}" class="btn btn-secondary">Download Parties Data (Excel)</a>
+                        <a href="{{ url_for('download_database', db_name='invalid_attempts') }}" class="btn btn-secondary">Download Invalid Attempts (Excel)</a>
+                    </div>
+                    <div class="download-links" style="margin-top: 1rem;">
+                        <a href="{{ url_for('view_database', db_name='users') }}" class="btn btn-primary">View Users Data</a>
+                        <a href="{{ url_for('view_database', db_name='votes') }}" class="btn btn-primary">View Votes Data</a>
+                        <a href="{{ url_for('view_database', db_name='parties') }}" class="btn btn-primary">View Parties Data</a>
+                        <a href="{{ url_for('view_database', db_name='invalid_attempts') }}" class="btn btn-primary">View Invalid Attempts</a>
+                        <a href="{{ url_for('past_elections') }}" class="btn btn-info">View Past Elections</a>
+                    </div>
+                </div>
+
+                {% if election.status == 'counting_done' %}
+                <div class="results-section">
+                    <h3>Election Results</h3>
+                    <a href="{{ url_for('view_results') }}" class="btn btn-primary">View Full Results</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="links">
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </main>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+// Real-time votes update
+function updateRealtimeVotes() {
+    fetch('/realtime_votes')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('realtime-votes');
+            
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-votes"><i class="fas fa-chart-bar"></i><p>No votes cast yet</p></div>';
+                return;
+            }
+            
+            let html = '';
+            const totalVotes = Object.values(data).reduce((sum, count) => sum + count, 0);
+            
+            // Sort parties by vote count (descending)
+            const sortedParties = Object.entries(data)
+                .sort(([,a], [,b]) => b - a)
+                .map(([party, count]) => ({party, count}));
+            
+            sortedParties.forEach((item, index) => {
+                const percentage = totalVotes > 0 ? ((item.count / totalVotes) * 100).toFixed(1) : 0;
+                const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                
+                html += `
+                    <div class="realtime-vote-card ${index === 0 ? 'leader' : ''}">
+                        <div class="vote-rank">${rankIcon}</div>
+                        <div class="vote-party">${item.party}</div>
+                        <div class="vote-count">${item.count}</div>
+                        <div class="vote-percentage">${percentage}%</div>
+                        <div class="vote-bar">
+                            <div class="vote-bar-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `<div class="total-votes-summary"><i class="fas fa-users"></i> Total: ${totalVotes} votes</div>`;
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error updating votes:', error);
+        });
+}
+
+// Update generator status
+function updateGeneratorStatus() {
+    fetch('/generator_status')
+        .then(response => response.json())
+        .then(data => {
+            // Update voter count
+            const voterCountEl = document.getElementById('voter-count');
+            if (voterCountEl) {
+                voterCountEl.textContent = data.voter_count;
+            }
+            
+            // Update status badge
+            const statusEl = document.getElementById('generator-status');
+            if (statusEl) {
+                statusEl.className = `status-badge ${data.running ? 'running' : 'stopped'}`;
+                statusEl.innerHTML = data.running ? '🟢 Running' : '🔴 Stopped';
+            }
+        })
+        .catch(error => {
+            console.error('Error updating generator status:', error);
+        });
+}
+
+// Update both on page load and every 2 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    updateRealtimeVotes();
+    updateGeneratorStatus();
+    
+    // Update every 2 seconds
+    setInterval(() => {
+        updateRealtimeVotes();
+        updateGeneratorStatus();
+    }, 2000);
+});
+</script>

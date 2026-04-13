@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Elections - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="container page-content">
+            <header class="page-header">
+                <div>
+                    <h1><i class="fas fa-history"></i> Past Elections Results</h1>
+                    <p>View results from previous elections</p>
+                </div>
+            </header>
+
+            <main>
+                {% if past_results %}
+                    {% for past_result in past_results %}
+                    <div class="past-election-card">
+                        <div class="election-header">
+                            <h2>Election #{{ past_result.election.election_number }}</h2>
+                            <p class="election-date">Completed on {{ past_result.election.created_at[:10] }}</p>
+                        </div>
+
+                        <div class="results-grid">
+                            {% set total_votes = past_result.results | sum(attribute='count') %}
+                            {% for result in past_result.results %}
+                            <div class="result-card {% if loop.first %}winner-card{% endif %}">
+                                <div class="result-rank">
+                                    {% if loop.first %}
+                                        <span class="rank-badge winner-rank">🥇 Winner</span>
+                                    {% elif loop.index == 2 %}
+                                        <span class="rank-badge">🥈 2nd</span>
+                                    {% elif loop.index == 3 %}
+                                        <span class="rank-badge">🥉 3rd</span>
+                                    {% else %}
+                                        <span class="rank-badge">{{ loop.index }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="candidate-name">{{ result.vote }}</div>
+                                <div class="vote-count">{{ result.count }} votes</div>
+                                <div class="percentage-bar">
+                                    <div class="percentage-fill" style="width: {{ (result.count / total_votes * 100) if total_votes > 0 else 0 }}%"></div>
+                                </div>
+                                <div class="percentage-text">{{ "%.1f"|format((result.count / total_votes * 100) if total_votes > 0 else 0) }}%</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="total-votes">
+                            <i class="fas fa-users"></i>
+                            Total Votes Cast: <strong>{{ total_votes }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-results">
+                        <i class="fas fa-info-circle"></i>
+                        <h3>No Past Elections Found</h3>
+                        <p>Complete at least one election to see past results here.</p>
+                    </div>
+                {% endif %}
+
+                <div class="back-link">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Admin Dashboard
+                    </a>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

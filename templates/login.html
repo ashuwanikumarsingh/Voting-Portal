@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="logo-section">
+                <i class="fas fa-landmark"></i>
+                <h1 class="main-heading">Election Commission of India</h1>
+                <h2 class="sub-heading">Secure Online Voting Portal</h2>
+            </div>
+
+            <div class="welcome-section">
+                <h3 class="welcome-title">Login to Vote</h3>
+                <p class="welcome-text">Secure Aadhaar login for registered voters and officials.</p>
+            </div>
+
+            <main class="login-form-container">
+                <form method="POST" class="form-card">
+                    <div class="form-group">
+                        <label for="aadhaar">Aadhaar Number</label>
+                        <input type="text" id="aadhaar" name="aadhaar" pattern="[0-9]{12}" maxlength="12" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pin">4-Digit PIN</label>
+                        <input type="password" id="pin" name="pin" pattern="[0-9]{4}" maxlength="4" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+
+                <div class="links">
+                    <a href="{{ url_for('register') }}">New user? Register here</a>
+                    <a href="{{ url_for('forgot_pin') }}">Forgot PIN?</a>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

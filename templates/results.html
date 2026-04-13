@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Results - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Election Results</h1>
+        </header>
+
+        <main>
+            <div class="results-card">
+                <h2>Final Vote Count</h2>
+                {% set total_votes = results | sum(attribute='count') %}
+                {% if results and total_votes > 0 %}
+                {% set winner = results[0] %}
+                <div class="winner-banner">
+                    <div class="winner-badge">Winner</div>
+                    <h3 class="winner-title">{{ winner.vote }}</h3>
+                    <p class="winner-subtitle">Winning with {{ winner.count }} votes ({{ "%.1f"|format((winner.count / total_votes * 100) if total_votes > 0 else 0) }}%)</p>
+                </div>
+                {% else %}
+                <div class="winner-banner no-results">
+                    <h3>No completed results available yet.</h3>
+                    <p>Please wait for counting to finish.</p>
+                </div>
+                {% endif %}
+                <div class="results-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Votes</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>{{ result.vote }}</td>
+                                <td>{{ result.count }}</td>
+                                <td>{{ "%.1f"|format((result.count / total_votes * 100) if total_votes > 0 else 0) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="total-votes"><strong>Total Votes Cast:</strong> {{ total_votes }}</p>
+            </div>
+
+            <div class="links">
+                <a href="{{ url_for('home') }}">Back to Home</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

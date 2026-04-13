@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Commission of India - Secure Online Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="logo-section">
+                <i class="fas fa-landmark"></i>
+                <h1 class="main-heading">Election Commission of India</h1>
+                <h2 class="sub-heading">Secure Online Voting Portal</h2>
+            </div>
+
+            <div class="welcome-section">
+                <h3 class="welcome-title">Welcome to Digital Voting</h3>
+                <p class="welcome-text">Cast your vote securely from anywhere in India</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login to Vote
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-secondary btn-large">
+                    <i class="fas fa-user-plus"></i>
+                    Register to Vote
+                </a>
+                {% if results %}
+                <a href="{{ url_for('public_results') }}" class="btn btn-outline btn-large">
+                    <i class="fas fa-chart-bar"></i>
+                    View Results
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if results and show_results %}
+        <div class="results-section">
+            <div class="results-header">
+                <h3><i class="fas fa-chart-bar"></i> Latest Election Results</h3>
+                <p class="election-info">Election #{{ election.election_number }}</p>
+            </div>
+
+            {% if results %}
+                {% set winner = results[0] %}
+                <div class="winner-banner-container">
+                    <div class="winner-banner">
+                        <div class="winner-animation">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h2 class="winner-name">🏆 {{ winner.vote }} WINS! 🏆</h2>
+                        <div class="winner-details">
+                            <div class="winner-votes">
+                                <span class="vote-number">{{ winner.count }}</span>
+                                <span class="vote-label">Votes</span>
+                            </div>
+                            {% set total_votes = results | sum(attribute='count') %}
+                            <div class="winner-percentage">
+                                <span class="percentage-number">{{ "%.1f"|format((winner.count / total_votes * 100) if total_votes > 0 else 0) }}</span>
+                                <span class="percentage-label">%</span>
+                            </div>
+                        </div>
+                        <div class="winner-bar">
+                            <div class="winner-bar-fill" style="width: {{ (winner.count / total_votes * 100) if total_votes > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="results-header-secondary">
+                <h3><i class="fas fa-ranking"></i> All Results</h3>
+            </div>
+
+            <div class="results-grid">
+                {% set total_votes = results | sum(attribute='count') %}
+                {% for result in results %}
+                <div class="result-card {% if loop.first %}winner-card{% endif %}">
+                    <div class="result-rank">
+                        {% if loop.first %}
+                            <span class="rank-badge winner-rank">🥇 Winner</span>
+                        {% elif loop.index == 2 %}
+                            <span class="rank-badge">🥈 2nd</span>
+                        {% elif loop.index == 3 %}
+                            <span class="rank-badge">🥉 3rd</span>
+                        {% else %}
+                            <span class="rank-badge">{{ loop.index }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="candidate-name">{{ result.vote }}</div>
+                    <div class="vote-count">{{ result.count }} votes</div>
+                    <div class="percentage-bar">
+                        <div class="percentage-fill" style="width: {{ (result.count / total_votes * 100) if total_votes > 0 else 0 }}%"></div>
+                    </div>
+                    <div class="percentage-text">{{ "%.1f"|format((result.count / total_votes * 100) if total_votes > 0 else 0) }}%</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="total-votes">
+                <i class="fas fa-users"></i>
+                Total Votes Cast: <strong>{{ total_votes }}</strong>
+            </div>
+
+            <div class="back-link">
+                <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

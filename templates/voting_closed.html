@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting Closed - Voting Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Voting is Now Closed</h1>
+        </header>
+
+        <main>
+            <div class="status-card">
+                <h2>🗳️ Election Status</h2>
+                <p>The voting period has ended. No more votes can be cast at this time.</p>
+
+                {% if counting_done %}
+                    <div class="result-option">
+                        <h3>Results are now available!</h3>
+                        <a href="{{ url_for('view_results') }}" class="btn btn-primary">View Election Results</a>
+                    </div>
+                {% else %}
+                    <div class="result-option">
+                        <h3>Vote counting in progress...</h3>
+                        <p>Please wait for the official results to be announced.</p>
+                        <button class="btn btn-secondary" disabled>Wait for Results</button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="links">
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
